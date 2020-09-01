@@ -3,6 +3,7 @@ from flask_cors import CORS
 from connect_db import connect
 from helpers import compareJSONdate
 from bson.json_util import dumps as json
+from json import dumps
 
 app = Flask(__name__)
 
@@ -36,8 +37,8 @@ def getAnime(id):
 @app.route(BASE_URL + "search/")
 @app.route(BASE_URL + "search/<id>")
 def searchAnime(id=""):
-    if id is "":
-        return {}
+    if id == "":
+        return Response(response=dumps([]), status=200, mimetype="application/json")
 
     query = collection.aggregate([
         {
