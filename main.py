@@ -1,4 +1,5 @@
 from flask import Flask, Response
+from flask_cors import CORS
 from connect_db import connect
 from helpers import compareJSONdate
 from bson.json_util import dumps as json
@@ -10,6 +11,8 @@ BASE_URL = "/api/v2/anime/"
 client = connect()
 db = client['andromeda']
 collection = db['animes']
+
+cors = CORS(app)
 
 
 @app.route("/")
