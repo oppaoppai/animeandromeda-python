@@ -33,8 +33,12 @@ def getAnime(id):
     return Response(response=data, status=200, mimetype="application/json")
 
 
+@app.route(BASE_URL + "search/")
 @app.route(BASE_URL + "search/<id>")
-def searchAnime(id):
+def searchAnime(id=""):
+    if id is "":
+        return {}
+
     query = collection.aggregate([
         {
             "$group": {
