@@ -7,4 +7,4 @@ RUN chmod +x ./bin/activate
 RUN ./bin/activate
 RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 5000
-CMD uwsgi --socket 0.0.0.0:5000 --protocol=http --lazy-apps --process 4 --master -w wsgi:app
+CMD uwsgi --socket 0.0.0.0:5000 --protocol=http --master --enable-threads --threads 2 --thunder-lock -w wsgi:app

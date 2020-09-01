@@ -1,6 +1,10 @@
 from pymongo import MongoClient
 
+CONNECTION = "xxxx"
+
 
 def connect():
     return MongoClient(
-        "xxxxxx")
+        CONNECTION,
+        connect=False
+    )
