@@ -11,3 +11,10 @@ def compareJSONdate(jsondate):
     else:
         return datetime.strptime(
             date, "%Y-%m-%d %H:%M:%S.%f")
+
+
+def convertEpisode(ep):
+    if "-" in ep:
+        return int(ep.split("-")[1])
+    else:
+        return int(ep)

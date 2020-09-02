@@ -1,7 +1,8 @@
 from flask import Flask, Response
+from flask_gzip import Gzip
 from flask_cors import CORS
 from connect_db import connect
-from helpers import compareJSONdate
+from helpers import compareJSONdate, convertEpisode
 from bson.json_util import dumps as json
 from json import dumps
 
@@ -14,6 +15,7 @@ db = client['andromeda']
 collection = db['animes']
 
 cors = CORS(app)
+gzip = Gzip(app)
 
 
 @app.route("/")
@@ -30,7 +32,7 @@ def getAnime(id):
             {"title": id},
         ]})
 
-    query = sorted(query, key=lambda x: int(x["ep"]))
+    query = sorted(query, key=lambda x: convertEpisode(x["ep"]))
 
     data = json(query)
     return Response(response=data, status=200, mimetype="application/json")
