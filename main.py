@@ -28,7 +28,9 @@ def getAnime(id):
             {"series_pretty": id},
             {"series": id},
             {"title": id},
-        ]}).sort("ep")
+        ]})
+
+    query = sorted(query, key=lambda x: int(x["ep"]))
 
     data = json(query)
     return Response(response=data, status=200, mimetype="application/json")
@@ -149,6 +151,7 @@ def getRandomAnimes():
     ])
 
     query = map(lambda x:  {
+        "_id": x["_id"],
         "series": x["series"],  # presente per forza
         "series_pretty": x["series_pretty"] if "series_pretty" in x else None,  # cambierò
         "title": x["title"] if "title" in x else None,
