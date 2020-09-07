@@ -1,12 +1,13 @@
 from flask import Flask, Response, request
-from flask_gzip import Gzip
 from flask_cors import CORS
+from flask_compress import Compress
 from connect_db import connect
 from helpers import compareJSONdate, convertEpisode
 from bson.json_util import dumps as json
 from json import dumps
 
 app = Flask(__name__)
+app.config["COMPRESS_ALGORITHM"] = "br"
 
 BASE_URL = "/api/v2/anime/"
 
@@ -15,8 +16,8 @@ db = client["andromeda"]
 collection = db["animes"]
 report_collection = db["reports"]
 
-cors = CORS(app)
-gzip = Gzip(app)
+CORS(app)
+Compress(app)
 
 
 @app.route("/")
@@ -153,7 +154,7 @@ def getRandomAnimes():
         }
     ])
 
-    query = map(lambda x:  {
+    query = map(lambda x: {
         "_id": x["_id"],
         "series": x["series"],  # presente per forza
         "series_pretty": x["series_pretty"] if "series_pretty" in x else None,  # cambierò
@@ -171,4 +172,5 @@ def report():
     data = request.get_json(silent=True)
     report_dict = {"series": data["series"], "episode": data["episode"]}
     report_collection.insert_one(report_dict)
-    return {"insert": "success"}
+
+    return Response(response={"success": True}, status=200, mimetype="application/json")
