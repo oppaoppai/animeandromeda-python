@@ -40,6 +40,36 @@ def getAnime(id):
     return Response(response=data, status=200, mimetype="application/json")
 
 
+@app.route(BASE_URL + "genre/<genres>")
+def getAnimeByGenres(genres):
+    genres_list = []
+    if "," in genres:
+        genres_list = genres.split(",")
+    else:
+        genres_list.append(genres)
+
+    query = collection.aggregate([
+        {
+            "$group": {
+                "_id": {"series": "$series"},
+                "pretty": {"$first": "$series_pretty"},
+                "title": {"$first": "$title"},
+                "pic": {"$first": "$pic"},
+                "thumb": {"$first": "$thumb"},
+                "genres": {"$first": "$genres"},
+                "count": {"$sum": 1},
+            },
+        },
+        {
+            "$match": {"genres": {"$all": genres_list}}
+        }])
+
+    query = sorted(query, key=lambda x: x["pretty"])
+
+    data = json(query)
+    return Response(response=data, status=200, mimetype="application/json")
+
+
 @app.route(BASE_URL + "search/")
 @app.route(BASE_URL + "search/<id>")
 def searchAnime(id=""):
