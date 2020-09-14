@@ -2,7 +2,8 @@ from flask import Flask, Response, request
 from flask_cors import CORS
 from flask_compress import Compress
 from connect_db import connect
-from helpers import compareJSONdate, convertEpisode
+from helpers import compareJSONdate, convertEpisode, convertJST
+from domains import days as days_domain
 from bson.json_util import dumps as json
 from json import dumps
 
@@ -204,3 +205,49 @@ def report():
     report_collection.insert_one(report_dict)
 
     return Response(response={"success": True}, status=200, mimetype="application/json")
+
+
+@app.route(BASE_URL + "calendar")
+def getBroadcast():
+    query = collection.aggregate([
+        {
+            "$group": {
+                "_id": {"series": "$series"},
+                "pretty": {"$first": "$series_pretty"},
+                "title": {"$first": "$title"},
+                "airing": {"$first": "$airing"},
+                "broadcast": {"$first": "$broadcast"},
+            }
+        },
+        {"$match": {"airing": {"$eq": True}}}
+    ])
+
+    data = list(filter(lambda x: x["broadcast"] != "Unknown", query))
+
+    calendar = {
+        "mon": [],
+        "tue": [],
+        "wed": [],
+        "thu": [],
+        "fri": [],
+        "sat": [],
+        "sun": []
+    }
+
+    _cal = []
+    for element in data:
+        _cal.append(
+            {
+                "series": element["_id"]["series"],
+                "title": element["title"],
+                "broadcast": convertJST(element["broadcast"])
+            })
+
+    for element in _cal:
+        day = element['broadcast'][0]
+        hours = element['broadcast'][1]
+        series = element['series']
+        title = element['title']
+        calendar[day].append({"series": series, "hours": hours, "title": title})
+
+    return dumps(calendar)

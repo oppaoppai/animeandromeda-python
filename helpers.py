@@ -1,4 +1,5 @@
 from datetime import datetime
+from domains import days
 
 
 def compareJSONdate(jsondate):
@@ -25,3 +26,21 @@ def convertEpisode(ep):
             return (0, parsed, '')
         except ValueError:
             return (1, ep, '')
+
+
+def convertJST(jst):
+    # get the CET time from a formatted String in JST time. ex: Tuesdays at 21:54 (JST) -> ["tue", "14:54"]
+    format = "%H:%M"
+    parts = jst.split(" ")
+    dayOfWeek = parts[0]
+    hours = parts[2]
+
+    jst_delta = "7:00"
+
+    correct_time = str(datetime.strptime(hours, format) - datetime.strptime(jst_delta, format))
+
+    if "-1 day" in correct_time:
+        day_index = (list(days.keys()).index(dayOfWeek))
+        return [days[list(days.keys())[day_index - 1]], correct_time.split(",")[1].lstrip()]
+
+    return [days[dayOfWeek], correct_time]
