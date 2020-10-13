@@ -84,8 +84,10 @@ def searchAnime(id=""):
                 "redundant": {"$first": "$series"},
                 "pretty": {"$first": "$series_pretty"},
                 "title": {"$first": "$title"},
+                "title_romaji": {"$first": "$title_romaji"},
                 "pic": {"$first": "$pic"},
                 "thumb": {"$first": "$thumb"},
+                "premiere": {"$first": "$premiere"},
                 "count": {"$sum": 1},
             },
         },
@@ -94,6 +96,7 @@ def searchAnime(id=""):
                 "$or": [
                     {"pretty": {"$regex": id, "$options": "i"}},
                     {"title": {"$regex": id, "$options": "i"}},
+                    {"title_romaji": {"$regex": id, "$options": "i"}},
                     {"redundant": {"$regex": id, "$options": "i"}},
                 ],
             }
@@ -141,6 +144,7 @@ def getLastAiredAnimes():
                 "airedLast": {"$first": "$airedLast"},
                 "pic": {"$first": "$pic"},
                 "thumb": {"$first": "$thumb"},
+                "premiere": {"$first": "$premiere"},
                 "count": {"$sum": 1},
             }
         }
@@ -177,22 +181,25 @@ def getAiringAnimes():
 
 @app.route(BASE_URL + "random")
 def getRandomAnimes():
+    size = request.args.get('size')
     query = collection.aggregate([
         {
+            "$group": {
+                "_id": {"series": "$series"},
+                "series": {"$first": "$series"},
+                "series_pretty": {"$first": "$series_pretty"},
+                "title": {"$first": "$title"},
+                "pic": {"$first": "$pic"},
+                "premiere": {"$first": "$premiere"},
+                "idMAL": {"$first": "$idMAL"},
+            }
+        },
+        {
             "$sample": {
-                "size": 6
+                "size": int(size) if size else 6
             },
         }
     ])
-
-    query = map(lambda x: {
-        "_id": x["_id"],
-        "series": x["series"],  # presente per forza
-        "series_pretty": x["series_pretty"] if "series_pretty" in x else None,  # cambierò
-        "title": x["title"] if "title" in x else None,
-        "pic": x["pic"] if "pic" in x else None,
-        "idMAL": x["idMAL"] if "idMAL" in x else None,
-    }, query)
 
     data = json(query)
     return Response(response=data, status=200, mimetype="application/json")
@@ -251,3 +258,54 @@ def getBroadcast():
         calendar[day].append({"series": series, "hours": hours, "title": title})
 
     return dumps(calendar)
+
+
+@app.route(BASE_URL + "top")
+def getTopAnimes():
+    query = collection.aggregate([
+        {
+            "$group": {
+                "_id": {"series": "$series"},
+                "pretty": {"$first": "$series_pretty"},
+                "title": {"$first": "$title"},
+                "title_romaji": {"$first": "$title_romaji"},
+                "updated": {"$first": "$updated"},
+                "airing": {"$first": "$airing"},
+                "pic": {"$first": "$pic"},
+                "thumb": {"$first": "$thumb"},
+                "score": {"$first": "$score"},
+                "premiere": {"$first": "$premiere"},
+                "count": {"$sum": 1},
+            }
+        }
+    ])
+
+    query = sorted(query, key=lambda x: float(x["score"] or 0.00))
+    query = list(reversed(query))
+
+    data = json(query[:50])
+    return Response(response=data, status=200, mimetype="application/json")
+
+
+@app.route(BASE_URL + "upcoming")
+def getUpcomingAnimes():
+    query = collection.aggregate([
+        {
+            "$group": {
+                "_id": {"series": "$series"},
+                "pretty": {"$first": "$series_pretty"},
+                "title": {"$first": "$title"},
+                "updated": {"$first": "$updated"},
+                "upcoming": {"$first": "$upcoming"},
+                "pic": {"$first": "$pic"},
+                "thumb": {"$first": "$thumb"},
+                "count": {"$sum": 1},
+            }
+        },
+        {"$match": {"upcoming": {"$eq": True}}}
+    ])
+
+    query = sorted(query, key=lambda x: x["pretty"])
+
+    data = json(query)
+    return Response(response=data, status=200, mimetype="application/json")
