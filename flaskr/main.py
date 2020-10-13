@@ -1,9 +1,8 @@
 from flask import Flask, Response, request
 from flask_cors import CORS
 from flask_compress import Compress
-from connect_db import connect
-from helpers import compareJSONdate, convertEpisode, convertJST
-from domains import days as days_domain
+from flaskr.db.connect_db import connect
+from flaskr.utils.helpers import compareJSONdate, convertEpisode, convertJST
 from bson.json_util import dumps as json
 from json import dumps
 

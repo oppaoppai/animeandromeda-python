@@ -1,5 +1,5 @@
 from datetime import datetime
-from domains import days
+from flaskr.data.domains import days
 
 
 def compareJSONdate(jsondate):
