@@ -240,20 +240,21 @@ def getBroadcast():
         "sun": []
     }
 
-    _cal = []
-    for element in data:
-        _cal.append(
+    days = []
+    for anime in data:
+        days.append(
             {
-                "series": element["_id"]["series"],
-                "title": element["title"],
-                "broadcast": convertJST(element["broadcast"])
+                "series": anime["_id"]["series"],
+                "title": anime["title"],
+                "broadcast": convertJST(anime["broadcast"])
             })
 
-    for element in _cal:
-        day = element['broadcast'][0]
-        hours = element['broadcast'][1]
-        series = element['series']
-        title = element['title']
+    for element in days:
+        day = element["broadcast"][0]
+        hours = element["broadcast"][1]
+        series = element["series"]
+        title = element["title"]
+
         calendar[day].append({"series": series, "hours": hours, "title": title})
 
     return dumps(calendar)

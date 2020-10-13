@@ -30,17 +30,24 @@ def convertEpisode(ep):
 
 def convertJST(jst):
     # get the CET time from a formatted String in JST time. ex: Tuesdays at 21:54 (JST) -> ["tue", "14:54"]
-    format = "%H:%M"
+    formatter = "%H:%M"
     parts = jst.split(" ")
-    dayOfWeek = parts[0]
-    hours = parts[2]
+    try:
+        day_of_week = parts[0]
+        hours = parts[2]
+    except IndexError:
+        # soluzione temporanea
+        # attenzione perché fa schifo, la strategia è andare a sistemare lo schifo sul database
+        print("wrong format")
+        hours = "7:00"
+        day_of_week = "Sundays"
 
     jst_delta = "7:00"
 
-    correct_time = str(datetime.strptime(hours, format) - datetime.strptime(jst_delta, format))
+    correct_time = str(datetime.strptime(hours, formatter) - datetime.strptime(jst_delta, formatter))
 
     if "-1 day" in correct_time:
-        day_index = (list(days.keys()).index(dayOfWeek))
+        day_index = (list(days.keys()).index(day_of_week))
         return [days[list(days.keys())[day_index - 1]], correct_time.split(",")[1].lstrip()]
 
-    return [days[dayOfWeek], correct_time]
+    return [days[day_of_week], correct_time]
