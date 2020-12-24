@@ -4,18 +4,18 @@
 
 AnimeAndromeda REST API
 
-### endpoints
+## endpoints
 fixed prefix: /api/v2/anime/
 
-##### get/`<id>`  
+##### `get/<id>`  
 returns a json of episode o a specific anime.
 The id is the name of the __exact__ anime series
 
-##### get/genre/`<genres>` 
+##### `get/genre/<genres>` 
 returns a json of animes with a specified genre
 **[here's the genres domain](https://raw.githubusercontent.com/oppaoppai/animeandromeda-react/master/src/globals/domains.js)**
 
-##### search/`<id>`
+##### `search/<id>`
 returns a list of possible animes that __like match__ the given id
 example
 curl http://localhost:5000/api/v2/anime/konOsU
@@ -61,70 +61,71 @@ curl http://localhost:5000/api/v2/anime/konOsU
   }
 ]`
 
-##### search/
+##### `search/`
 clears the search => returns an empty list
 
-##### latest/
+##### `latest/`
 returns a list of the latest inserted anime into the db
 (not so useful outside the website)
 
-##### latest/aired
+##### `latest/aired`
 returns a list of the latest aired animes
 
-##### latest/airing
+##### `latest/airing`
 returns a list of the current airing animes
 
-##### random/
-##### random?size=*size of the response list*/
+##### `random/`
+##### `random?size=*size of the response list*/`
 returns a random list of animes
 if not specified by the GET parameter the list's size is 6
 
-##### top/
+##### `top/`
 returns a list of animes with best scores
 
-##### upcoming
+##### `upcoming/`
 returns a list of upcoming animes
 __it's still in development__
 
-### classic setup
+## classic setup
 - currently tested only on Linux
 - clone this repository
 - python3 needed and python3-venv or python-virtualenv
   (python3.7 and python3.8 tested)
 
-`cd into the project's directory` 
-`python3 -m venv .`
-`chmod +x ./bin/activate`
-`source ./bin/activate`
-`pip install -r requierements.txt`
-`flask run (for testing)`
-for production:
-__multi-threaded__:
+`cd into the project's directory`  
+`python3 -m venv .`  
+`chmod +x ./bin/activate`  
+`source ./bin/activate`  
+`pip install -r requierements.txt`  
+`flask run (for testing)`  
+
+For production:  
+__multi-threaded__:  
 `uwsgi --socket 0.0.0.0:5000
 --protocol=http
    --master
    --enable-threads
    --threads 2
    --thunder-lock
-   -w app:app`
-__single-threaded__:
+   -w app:app`  
+__single-threaded__:  
  `uwsgi --socket 0.0.0.0:5000
    --protocol=http
    --master 
    -w app:app`
 
-### docker setup
-`cd into the project's directory`
-`docker build -f Dockerfile -t animeandromeda-py .`
-`docker run -d -p 5000:5000 animeandromeda-py`
-or
-`cd into the project's directory`
-`docker build -f Dockerfile -t animeandromeda-py .`
-`docker create --name animeandromeda-py -p 5000:5000 animeandromeda-py`
-`docker start animeandromeda-py`
+## docker setup
+`cd into the project's directory`  
+`docker build -f Dockerfile -t animeandromeda-py .`  
+`docker run -d -p 5000:5000 animeandromeda-py`  
+or  
+`cd into the project's directory`  
+`docker build -f Dockerfile -t animeandromeda-py .`  
+`docker create --name animeandromeda-py -p 5000:5000 animeandromeda-py`  
+`docker start animeandromeda-py`  
 
 __The connection to the database is NOT provided.__
-__If you want the access to the database write me a mail providing a motivation (it's not like you won't get it)__
-contatcs: 
-mail: nightbunny99@gmail.com
+__If you want the access to the database write me a mail providing a motivation (it's not like you won't get it)__  
+Contatcs:  
+mail: nightbunny99@gmail.com  
 Twitter: @Yun_sdvx
