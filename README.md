@@ -128,7 +128,7 @@ or
 
 __The connection to the database is NOT provided.__
 __You have to build your onw database with a schema like this__
-```json
+```
 {
     _id: String
     updated: Date
