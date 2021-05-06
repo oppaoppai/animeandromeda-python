@@ -19,7 +19,8 @@ returns a json of animes with a specified genre
 returns a list of possible animes that __like match__ the given id
 example
 curl http://localhost:5000/api/v2/anime/konOsU
-`[
+```json
+[
   {
     "_id":{
       "series":"KonoSubaMovie"
@@ -59,7 +60,8 @@ curl http://localhost:5000/api/v2/anime/konOsU
     "premiere":"Winter 2017",
     "count":11
   }
-]`
+]
+```
 
 ##### `search/`
 clears the search => returns an empty list
