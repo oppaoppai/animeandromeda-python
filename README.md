@@ -127,7 +127,70 @@ or
 `docker start animeandromeda-py`  
 
 __The connection to the database is NOT provided.__
-__If you want the access to the database write me a mail providing a motivation (it's not like you won't get it)__  
+__You have to build your onw database with a schema like this__
+```json
+{
+    _id: String
+    updated: Date
+    series: String
+    ep: String
+    url: String
+    __v: Int32
+    series_pretty: String
+    aired: String
+    desc: String
+    genres: Array
+    idMAL: Int32
+    pic: String
+    thumb: String
+    title: String
+    airedLast: Date
+    airing: false
+    airedFirst: Date
+    duration: String
+    title_romaji: String
+    trailer: String
+    broadcast: String
+    score: String
+    premiere: String
+}
+```
+here's an example
+```json
+{
+    "_id": "5f318a11c3e430777dsadbff",
+    "updated": "2020-08-10T17:55:13.916Z",
+    "series": "KanojoOkarishimasu",
+    "series_pretty": "Kanojo, Okarishimasu",
+    "ep": "04",
+    "url": "https://streaming-endpoint.tld/KanojoOkarishimasu_Ep_04_SUB_xx.mp4",
+    "__v": 0,
+    "aired": "Jul 11, 2020 to Sep 26, 2020",
+    "desc": "Kazuya Kinoshita \r\n blah blah",
+    "genres": [
+        "Comedy",
+        "Romance",
+        "School",
+        "Shounen"
+    ],
+    "idMAL": "40839",
+    "pic": "https://cdn.myanimelist.net/images/anime/1485/107693l.jpg",
+    "title": "Rent-a-Girlfriend",
+    "airing": false,
+    "thumb": "https://i.ibb.co/jHZC4s3/EY1-JYr-VAAAWIWb-CUnet-noise-scale-Level1-x2.jpg",
+    "airedFirst": {
+        "$date": "2020-07-11T00:00:00.000Z"
+    },
+    "airedLast": {
+        "$date": "2020-09-26T00:00:00.000Z"
+    },
+    "duration": "24 min per ep",
+    "title_romaji": "Kanojo, Okarishimasu",
+    "trailer": "https://www.youtube.com/embed/uIfxrlJg0Jw?enablejsapi=1&wmode=opaque&autoplay=1",
+    "broadcast": "Saturdays at 01:25 (JST)",
+    "score": "7.2",
+    "premiere": "Summer 2020"
+}
+```
 Contatcs:  
-mail: nightbunny99@gmail.com  
 Twitter: @Yun_sdvx
