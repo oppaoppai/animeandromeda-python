@@ -2,7 +2,7 @@
 
 ![logo](https://www.animeandromeda.net/static/media/Illustration.23741024.webp)
 
-AnimeAndromeda REST API
+AnimeAndromeda REST API built upon Flask and MongoDB native python driver
 
 ## endpoints
 fixed prefix: /api/v2/anime/
