@@ -126,8 +126,8 @@ or
 `docker create --name animeandromeda-py -p 5000:5000 animeandromeda-py`  
 `docker start animeandromeda-py`  
 
-__The connection to the database is NOT provided.__
-__You have to build your onw database with a schema like this__
+__The connection to the database is NOT provided.__  
+__You have to build your onw database with a schema like this:__
 ```
 {
     _id: String
@@ -155,7 +155,7 @@ __You have to build your onw database with a schema like this__
     premiere: String
 }
 ```
-here's an example
+here's an example:
 ```json
 {
     "_id": "5f318a11c3e430777dsadbff",
