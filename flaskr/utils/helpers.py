@@ -5,13 +5,11 @@ from flaskr.data.domains import days
 def compareJSONdate(jsondate):
     date = str(jsondate)
     if "Z" in date:
-        return datetime.strptime(
-            date, "%Y-%m-%dT%H:%M:%S.%fZ")  # is json date
+        return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")  # is json date
     elif date == "None":
-        return datetime(1, 1, 1, 0, 0)     # isn't either json or timezone dateobj
+        return datetime(1, 1, 1, 0, 0)  # isn't either json or timezone dateobj
     else:
-        return datetime.strptime(
-            date, "%Y-%m-%d %H:%M:%S.%f")  # has timezone
+        return datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")  # has timezone
 
 
 def convertEpisode(ep):
@@ -42,12 +40,18 @@ def convertJST(jst):
         hours = "7:00"
         day_of_week = "Sundays"
 
+    #delta from italy
     jst_delta = "7:00"
 
-    correct_time = str(datetime.strptime(hours, formatter) - datetime.strptime(jst_delta, formatter))
+    correct_time = str(
+        datetime.strptime(hours, formatter) -
+        datetime.strptime(jst_delta, formatter))
 
     if "-1 day" in correct_time:
         day_index = (list(days.keys()).index(day_of_week))
-        return [days[list(days.keys())[day_index - 1]], correct_time.split(",")[1].lstrip()]
+        return [
+            days[list(days.keys())[day_index - 1]],
+            correct_time.split(",")[1].lstrip()
+        ]
 
     return [days[day_of_week], correct_time]

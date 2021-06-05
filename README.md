@@ -2,6 +2,9 @@
 
 ![logo](https://www.animeandromeda.net/static/media/Illustration.23741024.webp)
 
+# Rachnera: AnimeAndromeda Public API
+<img src="https://i.ibb.co/z6FwkMV/rachnera.png" width="400">
+
 AnimeAndromeda REST API built upon Flask and MongoDB native python driver
 
 ## endpoints
@@ -163,7 +166,7 @@ here's an example:
     "series": "KanojoOkarishimasu",
     "series_pretty": "Kanojo, Okarishimasu",
     "ep": "04",
-    "url": "https://streaming-endpoint.tld/KanojoOkarishimasu_Ep_04_SUB_xx.mp4",
+    "url": "https://streaming-endpoint.tld/xx.mp4",
     "__v": 0,
     "aired": "Jul 11, 2020 to Sep 26, 2020",
     "desc": "Kazuya Kinoshita \r\n blah blah",

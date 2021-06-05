@@ -1,13 +1,24 @@
-from flask import Flask, Response, request
+from flask import Flask, Response, request, render_template
 from flask_cors import CORS
 from flask_compress import Compress
 from flaskr.db.connect_db import connect
 from flaskr.utils.helpers import compareJSONdate, convertEpisode, convertJST
 from bson.json_util import dumps as json
 from json import dumps
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.config["COMPRESS_ALGORITHM"] = "br"
+
+# rate limiter for everyone excluding AnimeAndromeda and localhost (for testing)
+limiter = Limiter(
+    app,
+    key_func=lambda: "" if get_remote_address() == "127.0.0.1" or get_remote_address() == "76.76.21.21"
+    else get_remote_address(),
+    default_limits=["25 per minute"]
+)
+
 
 BASE_URL = "/api/v2/anime/"
 
@@ -16,13 +27,18 @@ db = client["andromeda"]
 collection = db["animes"]
 report_collection = db["reports"]
 
+# Access-Control-Allow-Origin: *
 CORS(app)
+# Use brotli compression
 Compress(app)
 
 
 @app.route("/")
+@app.route("/api/v2/")
+@limiter.limit("10 per minute")
 def index():
-    return "animeandromeda API"
+    print(get_remote_address())
+    return render_template('index.html')
 
 
 @app.route(BASE_URL + "get/<id>")
@@ -41,7 +57,13 @@ def getAnime(id):
 
 
 @app.route(BASE_URL + "genre/<genres>")
-def getAnimeByGenres(genres):
+@app.route(BASE_URL + "filter/<genres>")
+@app.route(BASE_URL + "filter/<genres>/<year>")
+def getAnimeByGenres(genres, year=""):
+
+    if year != "" and len(year) != 4:
+        return Response(response=json([]), status=200, mimetype="application/json")
+
     genres_list = []
     if "," in genres:
         genres_list = genres.split(",")
@@ -57,11 +79,45 @@ def getAnimeByGenres(genres):
                 "pic": {"$first": "$pic"},
                 "thumb": {"$first": "$thumb"},
                 "genres": {"$first": "$genres"},
+                "premiere": {"$first": "$premiere"},
                 "count": {"$sum": 1},
             },
         },
         {
-            "$match": {"genres": {"$all": genres_list}}
+            "$match": {
+                "$and": [
+                    {"genres": {"$all": genres_list}},
+                    {"premiere": {"$regex": year}}
+                ]
+            }
+        }])
+
+    query = sorted(query, key=lambda x: x["pretty"])
+
+    data = json(query)
+    return Response(response=data, status=200, mimetype="application/json")
+
+
+@app.route(BASE_URL + "year/")
+@app.route(BASE_URL + "year/<year>")
+def getAnimeByYear(year=""):
+    if len(year) != 4:
+        return Response(response=json([]), status=200, mimetype="application/json")
+
+    query = collection.aggregate([
+        {
+            "$group": {
+                "_id": {"series": "$series"},
+                "pretty": {"$first": "$series_pretty"},
+                "title": {"$first": "$title"},
+                "pic": {"$first": "$pic"},
+                "thumb": {"$first": "$thumb"},
+                "genres": {"$first": "$genres"},
+                "premiere": {"$first": "$premiere"},
+            },
+        },
+        {
+            "$match": {"premiere": {"$regex": year}}
         }])
 
     query = sorted(query, key=lambda x: x["pretty"])
@@ -72,6 +128,7 @@ def getAnimeByGenres(genres):
 
 @app.route(BASE_URL + "search/")
 @app.route(BASE_URL + "search/<id>")
+@limiter.limit("100 per minute")
 def searchAnime(id=""):
     if id == "":
         return Response(response=dumps([]), status=200, mimetype="application/json")
@@ -125,7 +182,8 @@ def getLatestAnimes():
         }
     ])
 
-    query = sorted(query, key=lambda x: compareJSONdate(x["updated"]), reverse=True)
+    query = sorted(query, key=lambda x: compareJSONdate(
+        x["updated"]), reverse=True)
 
     data = json(query[:12])
     return Response(response=data, status=200, mimetype="application/json")
@@ -149,7 +207,8 @@ def getLastAiredAnimes():
         }
     ])
 
-    query = sorted(query, key=lambda x: compareJSONdate(x["airedLast"]), reverse=True)
+    query = sorted(query, key=lambda x: compareJSONdate(
+        x["airedLast"]), reverse=True)
 
     data = json(query[:16])
     return Response(response=data, status=200, mimetype="application/json")
@@ -255,7 +314,8 @@ def getBroadcast():
         series = element["series"]
         title = element["title"]
 
-        calendar[day].append({"series": series, "hours": hours, "title": title})
+        calendar[day].append(
+            {"series": series, "hours": hours, "title": title})
 
     return dumps(calendar)
 
