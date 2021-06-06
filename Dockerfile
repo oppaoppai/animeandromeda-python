@@ -7,4 +7,4 @@ RUN chmod +x ./bin/activate
 RUN ./bin/activate
 RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE $PORT
-CMD uwsgi --socket 0.0.0.0:$PORT --protocol=http --master --enable-threads --threads 2 --thunder-lock -w app:app
+CMD uwsgi --ini rachnera.ini
