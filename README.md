@@ -119,13 +119,11 @@ __it's still in development__
 
 For production:  
 __multi-threaded__:  
-`uwsgi --socket 0.0.0.0:5000
-   --enable-threads
+`uwsgi --enable-threads
    --threads 2
    --ini rachnera.ini`  
 __single-threaded__:  
- `uwsgi --socket 0.0.0.0:5000
-   --ini rachnera.ini`
+ `uwsgi --ini rachnera.ini`
 
 Then put the application behind a proxy, heres an example for nginx:
 ```
