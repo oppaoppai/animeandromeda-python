@@ -1,6 +1,6 @@
 # animeandromeda-python
 
-![logo](https://www.animeandromeda.net/static/media/Illustration.23741024.webp)
+![logo](https://www.animeandromeda.net/static/media/Illustration.b4a9d51c.webp)
 
 # Rachnera: AnimeAndromeda Public API
 <img src="https://i.ibb.co/z6FwkMV/rachnera.png" width="400">
@@ -128,7 +128,7 @@ __single-threaded__:
    --ini rachnera.ini`
 
 Then put the application behind a proxy, heres an example for nginx:
-`
+```
 #ANIMEANDROMEDA API
 server {
         listen 443 ssl http2;
@@ -146,8 +146,8 @@ server {
     ssl_certificate /path/to/fullchain.pem;
     ssl_certificate_key /path/to/privkey.pem;
 }
-`    
-__You have to build your onw database with a schema like this:__
+```   
+## DB Schema
 ```
 {
     _id: String
@@ -181,9 +181,9 @@ here's an example:
     "series": "KanojoOkarishimasu",
     "series_pretty": "Kanojo, Okarishimasu",
     "eps": {
-      "01": "https://streaming-endpoint.tld/xx.mp4"
-      "02": "https://streaming-endpoint.tld/xx.mp4"
-      "03": "https://streaming-endpoint.tld/xx.mp4"
+      "01": "https://streaming-endpoint.tld/xx.mp4",
+      "02": "https://streaming-endpoint.tld/xx.mp4",
+      "03": "https://streaming-endpoint.tld/xx.mp4",
       "04": "https://streaming-endpoint.tld/xx.mp4"
     },
     "__v": 0,
