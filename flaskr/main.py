@@ -1,8 +1,9 @@
+from datetime import datetime, timedelta
 from flask import Flask, Response, request, render_template
 from flask_cors import CORS
 from flask_compress import Compress
 from flaskr.db.connect_db import connect
-from flaskr.utils.helpers import compareJSONdate, convertEpisode, convertJST
+from flaskr.utils.helpers import compareJSONdate, convertJST
 from bson.json_util import dumps as json
 from json import dumps
 from flask_limiter import Limiter
@@ -23,9 +24,10 @@ limiter = Limiter(
 BASE_URL = "/api/v2/anime/"
 
 client = connect()
-db = client["andromeda"]
-collection = db["animes"]
-report_collection = db["reports"]
+db = client["andromeda_dev"]
+db_report = client["andromeda"]
+collection = db["anime_docs"]
+report_collection = db_report["reports"]
 
 # Access-Control-Allow-Origin: *
 CORS(app)
@@ -50,8 +52,6 @@ def getAnime(id):
             {"title": id},
         ]})
 
-    query = sorted(query, key=lambda x: convertEpisode(x["ep"]))
-
     data = json(query)
     return Response(response=data, status=200, mimetype="application/json")
 
@@ -70,29 +70,14 @@ def getAnimeByGenres(genres, year=""):
     else:
         genres_list.append(genres)
 
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "title": {"$first": "$title"},
-                "pic": {"$first": "$pic"},
-                "thumb": {"$first": "$thumb"},
-                "genres": {"$first": "$genres"},
-                "premiere": {"$first": "$premiere"},
-                "count": {"$sum": 1},
-            },
-        },
-        {
-            "$match": {
-                "$and": [
-                    {"genres": {"$all": genres_list}},
-                    {"premiere": {"$regex": year}}
-                ]
-            }
-        }])
+    query = collection.find({
+        "$and": [
+            {"genres": {"$all": genres_list}},
+            {"premiere": {"$regex": year}}
+        ]
+    })
 
-    query = sorted(query, key=lambda x: x["pretty"])
+    query = sorted(query, key=lambda x: x["series_pretty"])
 
     data = json(query)
     return Response(response=data, status=200, mimetype="application/json")
@@ -104,23 +89,9 @@ def getAnimeByYear(year=""):
     if len(year) != 4:
         return Response(response=json([]), status=200, mimetype="application/json")
 
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "title": {"$first": "$title"},
-                "pic": {"$first": "$pic"},
-                "thumb": {"$first": "$thumb"},
-                "genres": {"$first": "$genres"},
-                "premiere": {"$first": "$premiere"},
-            },
-        },
-        {
-            "$match": {"premiere": {"$regex": year}}
-        }])
+    query = collection.find({"premiere": {"$regex": year}})
 
-    query = sorted(query, key=lambda x: x["pretty"])
+    query = sorted(query, key=lambda x: x["series_pretty"])
 
     data = json(query)
     return Response(response=data, status=200, mimetype="application/json")
@@ -133,54 +104,34 @@ def searchAnime(id=""):
     if id == "":
         return Response(response=dumps([]), status=200, mimetype="application/json")
 
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "redundant": {"$first": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "title": {"$first": "$title"},
-                "title_romaji": {"$first": "$title_romaji"},
-                "pic": {"$first": "$pic"},
-                "thumb": {"$first": "$thumb"},
-                "premiere": {"$first": "$premiere"},
-                "count": {"$sum": 1},
-            },
-        },
-        {
-            "$match": {
-                "$or": [
-                    {"pretty": {"$regex": id, "$options": "i"}},
-                    {"title": {"$regex": id, "$options": "i"}},
-                    {"title_romaji": {"$regex": id, "$options": "i"}},
-                    {"redundant": {"$regex": id, "$options": "i"}},
-                ],
-            }
-        }])
+    query = collection.find({
+        "$or": [
+            {"series_pretty": {"$regex": id, "$options": "i"}},
+            {"title": {"$regex": id, "$options": "i"}},
+            {"title_romaji": {"$regex": id, "$options": "i"}},
+        ],
+    })
 
-    query = sorted(query, key=lambda x: x["redundant"])
+    query = sorted(query, key=lambda x: x["series_pretty"])
 
-    if len(query) > 0:
-        data = json(query)
-        return Response(response=data, status=200, mimetype="application/json")
-    return {}
+    # add count and sanitize
+    for anime in query:
+        anime['count'] = len(dict(anime['eps']).keys())
+        anime.pop('__v', None)
+        anime.pop('eps', None)
+        anime.pop('desc', None)
+        anime.pop('genres', None)
+        anime.pop('trailer', None)
+        anime.pop('duration', None)
+        anime.pop('broadcast', None)
+
+    return Response(response=json(query), status=200, mimetype="application/json")
 
 
 @app.route(BASE_URL + "latest")
 def getLatestAnimes():
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "updated": {"$first": "$updated"},
-                "aired": {"$first": "$aired"},
-                "pic": {"$first": "$pic"},
-                "thumb": {"$first": "$thumb"},
-                "count": {"$sum": 1},
-            }
-        }
-    ])
+    query = collection.find(
+        {"updated": {"$gte": datetime.now() - timedelta(weeks=9)}})
 
     query = sorted(query, key=lambda x: compareJSONdate(
         x["updated"]), reverse=True)
@@ -189,49 +140,17 @@ def getLatestAnimes():
     return Response(response=data, status=200, mimetype="application/json")
 
 
+@DeprecationWarning
 @app.route(BASE_URL + "latest/aired")
 def getLastAiredAnimes():
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "updated": {"$first": "$updated"},
-                "airedFirst": {"$first": "$airedFirst"},
-                "airedLast": {"$first": "$airedLast"},
-                "pic": {"$first": "$pic"},
-                "thumb": {"$first": "$thumb"},
-                "premiere": {"$first": "$premiere"},
-                "count": {"$sum": 1},
-            }
-        }
-    ])
-
-    query = sorted(query, key=lambda x: compareJSONdate(
-        x["airedLast"]), reverse=True)
-
-    data = json(query[:16])
-    return Response(response=data, status=200, mimetype="application/json")
+    return Response(response=json("This route has been deprecated"), status=200, mimetype="application/json")
 
 
 @app.route(BASE_URL + "latest/airing")
 def getAiringAnimes():
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "updated": {"$first": "$updated"},
-                "airing": {"$first": "$airing"},
-                "pic": {"$first": "$pic"},
-                "thumb": {"$first": "$thumb"},
-                "count": {"$sum": 1},
-            }
-        },
-        {"$match": {"airing": {"$eq": True}}}
-    ])
+    query = collection.find({"airing": {"$eq": True}})
 
-    query = sorted(query, key=lambda x: x["pretty"])
+    query = sorted(query, key=lambda x: x["series_pretty"])
 
     data = json(query)
     return Response(response=data, status=200, mimetype="application/json")
@@ -241,17 +160,7 @@ def getAiringAnimes():
 def getRandomAnimes():
     size = request.args.get('size')
     query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "series": {"$first": "$series"},
-                "series_pretty": {"$first": "$series_pretty"},
-                "title": {"$first": "$title"},
-                "pic": {"$first": "$pic"},
-                "premiere": {"$first": "$premiere"},
-                "idMAL": {"$first": "$idMAL"},
-            }
-        },
+        {"$match": {"series": {"$exists": True}}},
         {
             "$sample": {
                 "size": int(size) if size else 6
@@ -274,18 +183,7 @@ def report():
 
 @app.route(BASE_URL + "calendar")
 def getBroadcast():
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "title": {"$first": "$title"},
-                "airing": {"$first": "$airing"},
-                "broadcast": {"$first": "$broadcast"},
-            }
-        },
-        {"$match": {"airing": {"$eq": True}}}
-    ])
+    query = collection.find({"airing": {"$eq": True}})
 
     data = list(filter(lambda x: x["broadcast"] != "Unknown", query))
 
@@ -303,7 +201,7 @@ def getBroadcast():
     for anime in data:
         days.append(
             {
-                "series": anime["_id"]["series"],
+                "series": anime["series"],
                 "title": anime["title"],
                 "broadcast": convertJST(anime["broadcast"])
             })
@@ -317,28 +215,13 @@ def getBroadcast():
         calendar[day].append(
             {"series": series, "hours": hours, "title": title})
 
-    return dumps(calendar)
+    return Response(response=dumps(calendar), status=200, mimetype="application/json")
 
 
 @app.route(BASE_URL + "top")
 def getTopAnimes():
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "title": {"$first": "$title"},
-                "title_romaji": {"$first": "$title_romaji"},
-                "updated": {"$first": "$updated"},
-                "airing": {"$first": "$airing"},
-                "pic": {"$first": "$pic"},
-                "thumb": {"$first": "$thumb"},
-                "score": {"$first": "$score"},
-                "premiere": {"$first": "$premiere"},
-                "count": {"$sum": 1},
-            }
-        }
-    ])
+    query = collection.find(
+        {"score": {"$gte": "7.5"}})
 
     query = sorted(query, key=lambda x: float(x["score"] or 0.00))
     query = list(reversed(query))
@@ -349,23 +232,9 @@ def getTopAnimes():
 
 @app.route(BASE_URL + "upcoming")
 def getUpcomingAnimes():
-    query = collection.aggregate([
-        {
-            "$group": {
-                "_id": {"series": "$series"},
-                "pretty": {"$first": "$series_pretty"},
-                "title": {"$first": "$title"},
-                "updated": {"$first": "$updated"},
-                "upcoming": {"$first": "$upcoming"},
-                "pic": {"$first": "$pic"},
-                "thumb": {"$first": "$thumb"},
-                "count": {"$sum": 1},
-            }
-        },
-        {"$match": {"upcoming": {"$eq": True}}}
-    ])
+    query = collection.find({"upcoming": {"$eq": True}})
 
-    query = sorted(query, key=lambda x: x["pretty"])
+    query = sorted(query, key=lambda x: x["series_pretty"])
 
     data = json(query)
     return Response(response=data, status=200, mimetype="application/json")

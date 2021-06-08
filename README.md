@@ -21,47 +21,63 @@ returns a json of animes with a specified genre
 ##### `search/<id>`
 returns a list of possible animes that __like match__ the given id
 example
-curl http://localhost:5000/api/v2/anime/konOsU
+curl http://localhost:5000/api/v2/anime/search/konOsU
 ```json
 [
   {
-    "_id":{
-      "series":"KonoSubaMovie"
+    "_id": {
+      "$oid": "60bf7ba2cd13e023bc0963d9"
     },
-    "redundant":"KonoSubaMovie",
-    "pretty":"KonoSuba movie: Legend of crimson",
-    "title":"KONOSUBA -God's blessing on this wonderful world!- Legend of Crimson",
-    "title_romaji":"Kono Subarashii Sekai ni Shukufuku wo!: Kurenai Densetsu",
-    "pic":"https://cdn.myanimelist.net/images/anime/1856/100031l.jpg",
-    "thumb":"https://i.ibb.co/jvSTxTD/f3e533b89392768c8e07a2a28616e58b.jpg",
-    "premiere":null,
-    "count":1
+    "updated": {
+      "$date": 1596706208092
+    },
+    "series": "KonoSubarashiiSekaiNiShukufukuWo",
+    "series_pretty": "Kono Subarashii Sekai Ni Shukufuku Wo",
+    "title": "KonoSuba: God's Blessing on This Wonderful World!",
+    "title_romaji": "Kono Subarashii Sekai ni Shukufuku wo!",
+    "pic": "https://cdn.myanimelist.net/images/anime/8/77831l.jpg",
+    "aired": "Jan 14, 2016 to Mar 17, 2016",
+    "airing": false,
+    "score": "8.16",
+    "premiere": "Winter 2016",
+    "count": 12
   },
   {
-    "_id":{
-      "series":"KonoSubarashiiSekaiNiShukufukuWo"
+    "_id": {
+      "$oid": "60bf7ba2cd13e023bc0963e1"
     },
-    "redundant":"KonoSubarashiiSekaiNiShukufukuWo",
-    "pretty":"Kono Subarashii Sekai Ni Shukufuku Wo",
-    "title":"KonoSuba: God's Blessing on This Wonderful World!",
-    "title_romaji":"Kono Subarashii Sekai ni Shukufuku wo!",
-    "pic":"https://cdn.myanimelist.net/images/anime/8/77831l.jpg",
-    "thumb":"https://i.ibb.co/hW1S1kp/39894.jpg",
-    "premiere":"Winter 2016",
-    "count":23
+    "updated": {
+      "$date": 1596706208095
+    },
+    "series": "KonoSubarashiiSekaiNiShukufukuWo2",
+    "series_pretty": "Kono Subarashii Sekai Ni Shukufuku Wo 2",
+    "title": "KonoSuba: God's Blessing on This Wonderful World! 2",
+    "title_romaji": "Kono Subarashii Sekai ni Shukufuku wo! 2",
+    "pic": "https://cdn.myanimelist.net/images/anime/2/83188l.jpg",
+    "aired": "Jan 12, 2017 to Mar 16, 2017",
+    "airing": false,
+    "idMAL": "32937",
+    "score": "8.33",
+    "premiere": "Winter 2017",
+    "count": 11
   },
   {
-    "_id":{
-      "series":"KonoSubarashiiSekaiNiShukufukuWo2"
+    "_id": {
+      "$oid": "60bf7bbfcd13e023bc0965a8"
     },
-    "redundant":"KonoSubarashiiSekaiNiShukufukuWo2",
-    "pretty":"Kono Subarashii Sekai Ni Shukufuku Wo 2",
-    "title":"KonoSuba: God's Blessing on This Wonderful World! 2",
-    "title_romaji":"Kono Subarashii Sekai ni Shukufuku wo! 2",
-    "pic":"https://cdn.myanimelist.net/images/anime/2/83188l.jpg",
-    "thumb":"https://i.ibb.co/9YBS7Xt/46002.png",
-    "premiere":"Winter 2017",
-    "count":11
+    "updated": {
+      "$date": 1598019740129
+    },
+    "series": "KonoSubaMovie",
+    "series_pretty": "KonoSuba movie: Legend of crimson",
+    "title": "KONOSUBA -God's blessing on this wonderful world!- Legend of Crimson",
+    "title_romaji": "Kono Subarashii Sekai ni Shukufuku wo!: Kurenai Densetsu",
+    "pic": "https://cdn.myanimelist.net/images/anime/1856/100031l.jpg",
+    "aired": "Aug 30, 2019",
+    "airing": false,
+    "idMAL": "38040",
+    "premiere": null,
+    "count": 1
   }
 ]
 ```
@@ -72,9 +88,6 @@ clears the search => returns an empty list
 ##### `latest/`
 returns a list of the latest inserted anime into the db
 (not so useful outside the website)
-
-##### `latest/aired`
-returns a list of the latest aired animes
 
 ##### `latest/airing`
 returns a list of the current airing animes
@@ -136,9 +149,8 @@ __You have to build your onw database with a schema like this:__
     _id: String
     updated: Date
     series: String
-    ep: String
+    eps: Map<String, String>
     url: String
-    __v: Int32
     series_pretty: String
     aired: String
     desc: String
@@ -147,15 +159,14 @@ __You have to build your onw database with a schema like this:__
     pic: String
     thumb: String
     title: String
-    airedLast: Date
     airing: false
-    airedFirst: Date
     duration: String
     title_romaji: String
     trailer: String
     broadcast: String
     score: String
     premiere: String
+    fanSub: String
 }
 ```
 here's an example:
@@ -165,8 +176,12 @@ here's an example:
     "updated": "2020-08-10T17:55:13.916Z",
     "series": "KanojoOkarishimasu",
     "series_pretty": "Kanojo, Okarishimasu",
-    "ep": "04",
-    "url": "https://streaming-endpoint.tld/xx.mp4",
+    "eps": {
+      "01": "https://streaming-endpoint.tld/xx.mp4"
+      "02": "https://streaming-endpoint.tld/xx.mp4"
+      "03": "https://streaming-endpoint.tld/xx.mp4"
+      "04": "https://streaming-endpoint.tld/xx.mp4"
+    },
     "__v": 0,
     "aired": "Jul 11, 2020 to Sep 26, 2020",
     "desc": "Kazuya Kinoshita \r\n blah blah",
@@ -181,12 +196,6 @@ here's an example:
     "title": "Rent-a-Girlfriend",
     "airing": false,
     "thumb": "https://i.ibb.co/jHZC4s3/EY1-JYr-VAAAWIWb-CUnet-noise-scale-Level1-x2.jpg",
-    "airedFirst": {
-        "$date": "2020-07-11T00:00:00.000Z"
-    },
-    "airedLast": {
-        "$date": "2020-09-26T00:00:00.000Z"
-    },
     "duration": "24 min per ep",
     "title_romaji": "Kanojo, Okarishimasu",
     "trailer": "https://www.youtube.com/embed/uIfxrlJg0Jw?enablejsapi=1&wmode=opaque&autoplay=1",
