@@ -120,29 +120,33 @@ __it's still in development__
 For production:  
 __multi-threaded__:  
 `uwsgi --socket 0.0.0.0:5000
---protocol=http
-   --master
    --enable-threads
    --threads 2
-   --thunder-lock
-   -w app:app`  
+   --ini rachnera.ini`  
 __single-threaded__:  
  `uwsgi --socket 0.0.0.0:5000
-   --protocol=http
-   --master 
-   -w app:app`
+   --ini rachnera.ini`
 
-## docker setup
-`cd into the project's directory`  
-`docker build -f Dockerfile -t animeandromeda-py .`  
-`docker run -d -p 5000:5000 animeandromeda-py`  
-or  
-`cd into the project's directory`  
-`docker build -f Dockerfile -t animeandromeda-py .`  
-`docker create --name animeandromeda-py -p 5000:5000 animeandromeda-py`  
-`docker start animeandromeda-py`  
+Then put the application behind a proxy, heres an example for nginx:
+`
+#ANIMEANDROMEDA API
+server {
+        listen 443 ssl http2;
+        server_name your domain;
+        ssl_session_cache  builtin:1000  shared:SSL:10m;
+        ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4;
+        ssl_prefer_server_ciphers on;
 
-__The connection to the database is NOT provided.__  
+        location / {
+            include uwsgi_params;
+            uwsgi_pass unix:/path/to/application/rachnera-animeandromeda/rachnera.sock;
+        }
+
+    ssl_certificate /path/to/fullchain.pem;
+    ssl_certificate_key /path/to/privkey.pem;
+}
+`    
 __You have to build your onw database with a schema like this:__
 ```
 {
